@@ -1,0 +1,56 @@
+<view class="container">
+  <view class="nav-grid">
+    <view class="nav-card pending-order-card" bindtap="goToPendingOutbound">
+      <view class="nav-icon-wrapper pending-order-icon">
+        <text class="nav-icon">⏳</text>
+        <text class="pending-count-dot" wx:if="{{pendingOutboundTotal > 0}}">{{pendingOutboundTotal}}</text>
+      </view>
+      <text class="nav-title">待处理出库单</text>
+      <text class="nav-desc">{{pendingOutboundLoading ? '加载中...' : '查看未出库记录'}}</text>
+    </view>
+
+    <view class="nav-card inbound-card" bindtap="goToInbound">
+      <view class="nav-icon-wrapper inbound-icon">
+        <text class="nav-icon">📥</text>
+      </view>
+      <text class="nav-title">入库管理</text>
+      <text class="nav-desc">记录入库信息</text>
+    </view>
+
+    <view class="nav-card outbound-card" bindtap="goToOutbound">
+      <view class="nav-icon-wrapper outbound-icon">
+        <text class="nav-icon">📤</text>
+      </view>
+      <text class="nav-title">出库管理</text>
+      <text class="nav-desc">记录出库信息</text>
+    </view>
+
+    <view class="nav-card query-card" bindtap="goToQuery">
+      <view class="nav-icon-wrapper query-icon">
+        <text class="nav-icon">🔍</text>
+      </view>
+      <text class="nav-title">记录查询</text>
+      <text class="nav-desc">查询出入库记录</text>
+    </view>
+
+    <view class="nav-card dashboard-card" bindtap="goToDashboard">
+      <view class="nav-icon-wrapper dashboard-icon">
+        <text class="nav-icon">📊</text>
+      </view>
+      <text class="nav-title">数据统计</text>
+      <text class="nav-desc">查看统计数据</text>
+    </view>
+
+  </view>
+
+  <view class="bottom-nav">
+    <view class="nav-item active" bindtap="stayOnPage">
+      <text class="nav-icon">🏠</text>
+      <text class="nav-text">首页</text>
+    </view>
+    <view class="nav-item" bindtap="goToProfile">
+      <text class="nav-icon">👤</text>
+      <text class="nav-text">我的</text>
+    </view>
+  </view>
+</view>

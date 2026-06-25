@@ -1,0 +1,76 @@
+<view class="container">
+  <view class="header">
+    <text class="title">phoneModels 云函数测试</text>
+  </view>
+
+  <!-- 添加品牌测试 -->
+  <view class="test-section">
+    <view class="section-title">添加品牌</view>
+    <view class="input-group">
+      <input class="input" placeholder="输入品牌名称" value="{{brandInput}}" bindinput="onBrandInput" />
+      <button class="btn btn-primary" bindtap="testAddBrand" size="mini">添加品牌</button>
+    </view>
+  </view>
+
+  <!-- 添加型号测试 -->
+  <view class="test-section">
+    <view class="section-title">添加型号</view>
+    <view class="input-group">
+      <input class="input" placeholder="输入型号名称" value="{{modelInput}}" bindinput="onModelInput" />
+      <button class="btn btn-secondary" bindtap="addModelToArray" size="mini">添加到列表</button>
+    </view>
+    
+    <view class="model-list" wx:if="{{modelsArray.length > 0}}">
+      <view class="model-item" wx:for="{{modelsArray}}" wx:key="index">
+        <text>{{item}}</text>
+        <text class="remove" bindtap="removeModelToArray" data-index="{{index}}">✕</text>
+      </view>
+    </view>
+    
+    <button class="btn btn-primary" bindtap="testAddModels" size="mini" wx:if="{{modelsArray.length > 0 || modelInput}}">
+      批量添加 {{modelsArray.length + (modelInput ? 1 : 0)}} 个型号
+    </button>
+  </view>
+
+  <!-- 查询测试 -->
+  <view class="test-section">
+    <view class="section-title">查询测试</view>
+    <view class="btn-group">
+      <button class="btn btn-info" bindtap="testGetBrands" size="mini">查询所有品牌</button>
+      <button class="btn btn-info" bindtap="testGetModelsByBrand" size="mini">查询该品牌型号</button>
+    </view>
+  </view>
+
+  <!-- 测试结果 -->
+  <view class="test-section">
+    <view class="section-title">
+      <text>测试结果</text>
+      <text class="clear-btn" bindtap="clearResults">清空</text>
+    </view>
+    <view class="result-list" wx:if="{{testResults.length > 0}}">
+      <view class="result-item" wx:for="{{testResults}}" wx:key="index">
+        <view class="result-header">
+          <text class="result-action">{{item.action}}</text>
+          <text class="result-time">{{item.timestamp}}</text>
+        </view>
+        <view class="result-status {{item.success ? 'success' : 'failed'}}">
+          <text>{{item.success ? '✓' : '✗'}}</text>
+          <text>{{item.message}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:else>
+      <text>暂无测试结果</text>
+    </view>
+  </view>
+
+  <!-- 使用说明 -->
+  <view class="tips">
+    <view class="tips-title">测试步骤建议：</view>
+    <view class="tips-item">1. 输入品牌名称，点击"添加品牌"</view>
+    <view class="tips-item">2. 点击"查询所有品牌"验证</view>
+    <view class="tips-item">3. 输入型号名称，可以多次点击"添加到列表"</view>
+    <view class="tips-item">4. 点击"批量添加"提交型号</view>
+    <view class="tips-item">5. 点击"查询该品牌型号"验证</view>
+  </view>
+</view>

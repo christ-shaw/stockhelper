@@ -1,0 +1,54 @@
+<view class="container">
+  <view class="login-content">
+    <view class="logo-section">
+      <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+      <text class="app-name">库存助手</text>
+      <text class="app-desc">专业的库存管理工具</text>
+    </view>
+
+    <!-- 已登录状态 -->
+    <view class="user-info" wx:if="{{hasUserInfo}}">
+      <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <text class="nickname">{{userInfo.nickname}}</text>
+      <text class="login-tip">登录成功，即将跳转...</text>
+    </view>
+
+    <!-- 登录按钮 -->
+    <view class="login-actions" wx:if="{{!hasUserInfo && !needInput}}">
+      <button class="login-btn" bindtap="startLogin">
+        <text class="btn-icon">👤</text>
+        <text class="btn-text">登录</text>
+      </button>
+      <text class="login-tip">登录即可使用完整功能</text>
+    </view>
+
+    <!-- 需要填写昵称和头像 -->
+    <view class="user-input" wx:if="{{needInput}}">
+      <text class="input-title">完善个人信息</text>
+      <view class="avatar-section">
+        <button
+          class="avatar-btn-wrapper"
+          open-type="chooseAvatar"
+          bind:chooseavatar="onChooseAvatar"
+        >
+          <view class="avatar-btn {{avatarUrl ? 'has-avatar' : ''}}">
+            <image wx:if="{{avatarUrl}}" class="avatar-preview" src="{{avatarUrl}}" mode="aspectFill"></image>
+            <text wx:else class="avatar-placeholder">选择头像</text>
+          </view>
+        </button>
+      </view>
+      <input
+        class="nickname-input"
+        type="nickname"
+        placeholder="请输入您的昵称"
+        bind:input="onNicknameInput"
+        value="{{nickname}}"
+      />
+      <button class="submit-btn" bindtap="submitUserInfo">完成</button>
+    </view>
+
+    <view class="footer">
+      <text class="footer-text">点击登录即表示同意《用户协议》和《隐私政策》</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,319 @@
+<!--pages/inbound/inbound.wxml-->
+<view class="container">
+  <!-- 入库表单 -->
+  <view class="form-section">
+    <view class="section-title">入库信息</view>
+    <view class="form-item">
+      <view class="form-label">入库日期</view>
+      <picker
+        mode="date"
+        value="{{inboundForm.inboundDate}}"
+        bindchange="bindDateChange"
+      >
+        <view class="date-picker-wrapper">
+          <text class="date-label">📅</text>
+          <text class="date-value">{{inboundForm.inboundDate || '请选择日期'}}</text>
+          <text class="date-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-item">
+      <view class="form-label">快递单号</view>
+      <view class="form-input-wrapper">
+        <input
+          class="form-input"
+          value="{{inboundForm.trackingNumber}}"
+          placeholder="扫描或输入快递单号"
+          bindinput="onInput"
+          data-field="trackingNumber" />
+        <button
+          class="scan-btn"
+          bindtap="startScan"
+          disabled="{{scanning}}"
+        >
+          {{scanning ? '扫描中...' : '📷'}}
+        </button>
+      </view>
+    </view>
+    <view class="form-item">
+      <view class="form-label">客户姓名</view>
+      <input
+        class="form-input"
+        value="{{inboundForm.customerName}}"
+        placeholder="请输入客户姓名"
+        bindinput="onInput"
+        data-field="customerName" />
+    </view>
+
+ <view class="form-label">渠道信息</view>
+    <view class="form-row">
+      <view class="form-item type-section">
+        <picker
+          range="{{shopTypes}}"
+          range-key="name"
+          value="{{shopTypeIndex}}"
+          bindchange="onShopTypeChange"
+        >
+          <view class="date-picker-wrapper">
+            <text class="date-label">📋</text>
+            <text class="date-value">{{shopTypes[shopTypeIndex].name}}</text>
+            <text class="date-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-item shop-section">
+        <picker
+          range="{{allShops}}"
+          range-key="name"
+          value="{{shopIndex >= 0 ? shopIndex : ''}}"
+          bindchange="onShopChange"
+          disabled="{{loadingShops}}"
+        >
+          <view class="date-picker-wrapper {{loadingShops ? 'loading' : ''}}">
+            <text class="date-label">📊</text>
+            <text class="date-value">{{loadingShops ? '加载中...' : (selectedShopName || '请选择渠道')}}</text>
+            <text class="date-arrow">{{loadingShips ? '...' : '›'}}</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+    <!-- 手机型号列表 -->
+    <view class="phone-models-section">
+      <view class="section-subtitle">
+        <text>手机型号</text>
+        <text class="add-btn" bindtap="addPhoneModel">+ 添加</text>
+      </view>
+      <view
+        class="phone-model-item"
+        wx:for="{{inboundForm.phoneModels}}"
+        wx:key="index"
+      >
+        <view class="model-inputs">
+          <view class="model-picker-wrapper" bindtap="showModelPicker" data-index="{{index}}">
+            <text class="picker-icon">▼</text>
+            <view class="model-selected-text">{{item.model || '请选择型号'}}</view>
+          </view>
+          <!-- 型号选择弹窗 -->
+          <view class="model-picker-popup" wx:if="{{showModelPicker && pickerIndex === index}}">
+            <view class="model-search-wrapper">
+              <input
+                class="model-search-input"
+                type="text"
+                value="{{modelSearchKeyword}}"
+                placeholder="搜索品牌 / 货品 / 规格"
+                bindinput="onModelSearch"
+                data-index="{{index}}"
+              />
+            </view>
+            <scroll-view scroll-y class="search-result-list" wx:if="{{modelSearchKeyword}}">
+              <view
+                class="search-result-item"
+                wx:for="{{filteredProductOptions}}"
+                wx:for-item="option"
+                wx:for-index="optionIndex"
+                wx:key="label"
+                bindtap="selectFilteredProduct"
+                data-option-index="{{optionIndex}}"
+              >
+                {{option.label}}
+              </view>
+              <view class="picker-empty" wx:if="{{filteredProductOptions.length === 0}}">
+                未找到匹配型号
+              </view>
+            </scroll-view>
+            <view class="cascade-picker" wx:elif="{{productBrands.length > 0}}">
+              <scroll-view scroll-y class="cascade-column">
+                <view class="cascade-title">品牌</view>
+                <view
+                  class="cascade-item {{currentBrandIndex === brandIndex ? 'active' : ''}}"
+                  wx:for="{{productBrands}}"
+                  wx:for-item="brand"
+                  wx:for-index="brandIndex"
+                  wx:key="brand"
+                  bindtap="selectPickerBrand"
+                  data-brand-index="{{brandIndex}}"
+                >
+                  {{brand.brand}}
+                </view>
+              </scroll-view>
+              <scroll-view scroll-y class="cascade-column">
+                <view class="cascade-title">货品</view>
+                <view
+                  class="cascade-item {{currentProductIndex === productIndex ? 'active' : ''}}"
+                  wx:for="{{currentProducts}}"
+                  wx:for-item="product"
+                  wx:for-index="productIndex"
+                  wx:key="name"
+                  bindtap="selectPickerProduct"
+                  data-product-index="{{productIndex}}"
+                >
+                  {{product.name}}
+                </view>
+              </scroll-view>
+              <scroll-view scroll-y class="cascade-column">
+                <view class="cascade-title">规格</view>
+                <view
+                  class="cascade-item"
+                  wx:for="{{currentSpecs}}"
+                  wx:for-item="spec"
+                  wx:for-index="specIndex"
+                  wx:key="name"
+                  bindtap="selectPickerSpec"
+                  data-spec-index="{{specIndex}}"
+                >
+                  {{spec.name}}
+                </view>
+              </scroll-view>
+            </view>
+            <view class="picker-empty" wx:else>
+              暂无可选型号
+            </view>
+          </view>
+          <view class="quantity-wrapper">
+            <view
+              class="quantity-btn decrease-btn"
+              bindtap="changeQuantity"
+              data-index="{{index}}"
+              data-type="decrease"
+            >
+              -
+            </view>
+            <input
+              class="quantity-input"
+              type="number"
+              value="{{item.quantity}}"
+              placeholder="0"
+              bindinput="onPhoneQuantityInput"
+              bindblur="onPhoneQuantityBlur"
+              data-index="{{index}}" />
+            <view
+              class="quantity-btn increase-btn"
+              bindtap="changeQuantity"
+              data-index="{{index}}"
+              data-type="increase"
+            >
+              +
+            </view>
+          </view>
+        </view>
+        <view
+          class="delete-model-btn"
+          catchtap="deletePhoneModel"
+          data-index="{{index}}"
+        >
+          <text class="delete-icon">×</text>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{inboundForm.phoneModels.length === 0}}">请添加至少一个手机型号</view>
+      <!-- 数量汇总 -->
+      <view class="quantity-summary" wx:if="{{inboundForm.phoneModels.length > 0}}">
+        <text class="summary-label">总计:</text>
+        <view class="summary-total">
+          <text class="total-number">{{totalQuantity}}</text>
+          <text class="total-label">台</text>
+        </view>
+      </view>
+    </view>
+    <!-- 包裹照片 -->
+    <view class="photo-section">
+      <view class="section-subtitle">
+        <text>包裹照片</text>
+        <text class="photo-count">{{inboundForm.packagePhotos.length}}/9</text>
+      </view>
+      <view class="photo-grid">
+        <view
+          class="photo-item"
+          wx:for="{{inboundForm.packagePhotos}}"
+          wx:for-item="photo"
+          wx:for-index="photoIndex"
+          wx:key="photoIndex"
+        >
+          <image
+            class="photo-image"
+            src="{{photo}}"
+            mode="aspectFill"
+            bindtap="previewPackagePhoto"
+            data-index="{{photoIndex}}" />
+          <view
+            class="delete-photo-btn"
+            catchtap="deletePackagePhoto"
+            data-index="{{photoIndex}}"
+          >
+            <text class="delete-icon">×</text>
+          </view>
+        </view>
+        <view
+          class="photo-item upload-item"
+          wx:if="{{inboundForm.packagePhotos.length < 9}}"
+          bindtap="choosePackagePhotos"
+        >
+          <view class="upload-content">
+            <text class="upload-icon">+</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 手机照片 -->
+    <view class="photo-section">
+      <view class="section-subtitle">
+        <text>手机照片</text>
+        <text class="photo-count">{{inboundForm.phonePhotos.length}}/9</text>
+      </view>
+      <view class="photo-grid">
+        <view
+          class="photo-item"
+          wx:for="{{inboundForm.phonePhotos}}"
+          wx:for-item="photo"
+          wx:for-index="photoIndex"
+          wx:key="photoIndex"
+        >
+          <image
+            class="photo-image"
+            src="{{photo}}"
+            mode="aspectFill"
+            bindtap="previewPhonePhoto"
+            data-index="{{photoIndex}}" />
+          <view
+            class="delete-photo-btn"
+            catchtap="deletePhonePhoto"
+            data-index="{{photoIndex}}"
+          >
+            <text class="delete-icon">×</text>
+          </view>
+        </view>
+        <view
+          class="photo-item upload-item"
+          wx:if="{{inboundForm.phonePhotos.length < 9}}"
+          bindtap="choosePhonePhotos"
+        >
+          <view class="upload-content">
+            <text class="upload-icon">+</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 手机状态标记 -->
+    <view class="form-item issue-section">
+      <view class="form-label">手机有损坏/配件不全</view>
+      <switch 
+        checked="{{inboundForm.hasIssue}}" 
+        bindchange="onIssueChange"
+        color="#ff6b6b"
+      />
+    </view>
+    <!-- 备注 -->
+    <view class="form-item">
+      <view class="form-label">备注信息</view>
+      <textarea
+        class="form-textarea"
+        value="{{inboundForm.remark}}"
+        placeholder="请输入备注信息（选填）"
+        bindinput="onInput"
+        data-field="remark"
+        maxlength="200"
+        auto-height
+      />
+    </view>
+    <button class="submit-btn" bindtap="submitInbound" disabled="{{submitting}}" loading="{{submitting}}">{{submitting ? '提交中...' : '确认入库'}}</button>
+  </view>
+</view>

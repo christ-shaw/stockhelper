@@ -1,0 +1,145 @@
+<wxs module="utils">
+module.exports.getModels = function(phoneModels) {
+  if (!phoneModels || phoneModels.length === 0) {
+    return '';
+  }
+  var result = [];
+  for (var i = 0; i < phoneModels.length; i++) {
+    result.push(phoneModels[i].model);
+  }
+  return result.join(', ');
+}
+</wxs>
+
+<view class="container">
+  <view class="header">
+    <text class="title">queryRecords 云函数测试 - hasIssue 过滤</text>
+  </view>
+
+  <!-- 过滤条件 -->
+  <view class="test-section">
+    <view class="section-title">过滤条件</view>
+
+    <view class="filter-group">
+      <view class="filter-label">hasIssue 状态：</view>
+      <view class="radio-group">
+        <view class="radio-item {{hasIssueFilter === 'all' ? 'active' : ''}}" bindtap="selectHasIssue" data-value="all">
+          <text>全部</text>
+        </view>
+        <view class="radio-item {{hasIssueFilter === 'true' ? 'active' : ''}}" bindtap="selectHasIssue" data-value="true">
+          <text>有损坏/配件不全</text>
+        </view>
+        <view class="radio-item {{hasIssueFilter === 'false' ? 'active' : ''}}" bindtap="selectHasIssue" data-value="false">
+          <text>正常（无问题）</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="filter-group">
+      <view class="filter-label">每页数量：</view>
+      <input class="input" type="number" placeholder="默认20" value="{{limit}}" bindinput="onLimitInput" />
+    </view>
+
+    <view class="filter-group">
+      <view class="filter-label">客户姓名：</view>
+      <input class="input" placeholder="可选，模糊查询" value="{{customerName}}" bindinput="onCustomerNameInput" />
+    </view>
+
+    <view class="filter-group">
+      <view class="filter-label">物流单号：</view>
+      <input class="input" placeholder="可选，模糊查询" value="{{trackingNumber}}" bindinput="onTrackingNumberInput" />
+    </view>
+
+    <view class="filter-group">
+      <view class="filter-label">手机型号：</view>
+      <input class="input" placeholder="可选，模糊查询" value="{{model}}" bindinput="onModelInput" />
+    </view>
+
+    <view class="filter-group">
+      <view class="filter-label">日期范围：</view>
+      <view class="date-inputs">
+        <input class="input" type="date" value="{{startDate}}" bindchange="onStartDateChange" />
+        <text class="date-separator">至</text>
+        <input class="input" type="date" value="{{endDate}}" bindchange="onEndDateChange" />
+      </view>
+    </view>
+
+    <view class="btn-group">
+      <button class="btn btn-primary" bindtap="testQueryRecords">查询</button>
+      <button class="btn btn-secondary" bindtap="resetFilters">重置</button>
+    </view>
+  </view>
+
+  <!-- 分页控制 -->
+  <view class="pagination" wx:if="{{hasData}}">
+    <button class="btn btn-page {{!hasPrev ? 'disabled' : ''}}" bindtap="prevPage" disabled="{{!hasPrev}}">上一页</button>
+    <text class="page-info">第 {{currentPage}} 页</text>
+    <button class="btn btn-page {{!hasNext ? 'disabled' : ''}}" bindtap="nextPage" disabled="{{!hasNext}}">下一页</button>
+  </view>
+
+  <!-- 查询结果 -->
+  <view class="test-section">
+    <view class="section-title">
+      <text>查询结果 (共 {{total}} 条)</text>
+      <text class="clear-btn" bindtap="clearResults">清空</text>
+    </view>
+
+    <view class="result-list" wx:if="{{queryResults.length > 0}}">
+      <view class="result-item" wx:for="{{queryResults}}" wx:key="_id">
+        <view class="result-row">
+          <text class="result-label">客户姓名：</text>
+          <text class="result-value">{{item.customerName}}</text>
+        </view>
+        <view class="result-row">
+          <text class="result-label">入库日期：</text>
+          <text class="result-value">{{item.inboundDate}}</text>
+        </view>
+        <view class="result-row" wx:if="{{item.trackingNumber}}">
+          <text class="result-label">物流单号：</text>
+          <text class="result-value">{{item.trackingNumber}}</text>
+        </view>
+        <view class="result-row" wx:if="{{item.shopName}}">
+          <text class="result-label">店铺名称：</text>
+          <text class="result-value">{{item.shopName}}</text>
+        </view>
+        <view class="result-row">
+          <text class="result-label">手机型号：</text>
+          <text class="result-value">{{utils.getModels(item.phoneModels)}}</text>
+        </view>
+        <view class="result-row">
+          <text class="result-label">手机状态：</text>
+          <text class="result-value status-{{item.hasIssue ? 'issue' : 'normal'}}">
+            {{item.hasIssue ? '❌ 有损坏/配件不全' : '✓ 正常'}}
+          </text>
+        </view>
+        <view class="result-row" wx:if="{{item.remark}}">
+          <text class="result-label">备注：</text>
+          <text class="result-value">{{item.remark}}</text>
+        </view>
+        <view class="result-row">
+          <text class="result-label">创建时间：</text>
+          <text class="result-value">{{formatTime(item.createTime)}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="loading-tip" wx:if="{{loading}}">
+      <text>查询中...</text>
+    </view>
+
+    <view class="empty-tip" wx:else>
+      <text wx:if="{{hasSearched}}">暂无查询结果</text>
+      <text wx:else>点击"查询"开始测试</text>
+    </view>
+  </view>
+
+  <!-- 测试说明 -->
+  <view class="tips">
+    <view class="tips-title">测试说明：</view>
+    <view class="tips-item">1. 选择 hasIssue 过滤条件（全部/有问题/正常）</view>
+    <view class="tips-item">2. 可添加其他过滤条件（可选）</view>
+    <view class="tips-item">3. 点击"查询"按钮执行查询</view>
+    <view class="tips-item">4. 查看结果中的"手机状态"字段</view>
+    <view class="tips-item">5. 使用"上一页"/"下一页"翻页查看</view>
+  </view>
+</view>

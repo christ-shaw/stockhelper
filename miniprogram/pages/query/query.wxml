@@ -1,0 +1,223 @@
+<view class="container {{outboundOnly ? 'outbound-only-container' : ''}} {{((activeTab === 'inbound' && !showInboundFilters) || (activeTab === 'outbound' && !showOutboundFilters)) ? 'filters-collapsed' : ''}}">
+  <!-- 标签切换 -->
+  <view class="tabs" wx:if="{{!outboundOnly}}">
+    <view class="tab {{activeTab === 'inbound' ? 'active' : ''}}" bindtap="switchTab" data-tab="inbound">入库记录</view>
+    <view class="tab {{activeTab === 'outbound' ? 'active' : ''}}" bindtap="switchTab" data-tab="outbound">出库记录</view>
+  </view>
+
+  <!-- 入库筛选条件 -->
+  <view class="filter-section" wx:if="{{activeTab === 'inbound'}}">
+    <view class="filter-summary">
+      <view class="active-filter-tag" wx:if="{{inboundFilter.customerName || inboundFilter.trackingNumber || inboundFilter.startDate || inboundFilter.endDate}}">
+        <text class="active-filter-text">已设置筛选</text>
+      </view>
+      <view class="filter-toggle" bindtap="toggleInboundFilters">
+        <text>{{showInboundFilters ? '收起筛选' : '筛选条件'}}</text>
+        <text class="filter-toggle-arrow">{{showInboundFilters ? '⌃' : '⌄'}}</text>
+      </view>
+    </view>
+    <view class="filter-body" wx:if="{{showInboundFilters}}">
+      <view class="filter-item">
+        <text class="filter-label">客户姓名</text>
+        <input class="filter-input" placeholder="输入客户姓名" value="{{inboundFilter.customerName}}" bindinput="onInboundFilterInput" data-field="customerName" />
+      </view>
+      <view class="filter-item">
+        <text class="filter-label">物流单号</text>
+        <input class="filter-input" placeholder="输入物流单号" value="{{inboundFilter.trackingNumber}}" bindinput="onInboundFilterInput" data-field="trackingNumber" />
+      </view>
+      <view class="filter-item">
+        <text class="filter-label">入库日期</text>
+        <view class="date-range-picker">
+          <picker mode="date" value="{{inboundFilter.startDate}}" bindchange="onStartDateChange" start="2020-01-01" end="{{today}}">
+            <view class="filter-picker">
+              {{inboundFilter.startDate || '开始日期'}}
+            </view>
+          </picker>
+          <text class="filter-separator">至</text>
+          <picker mode="date" value="{{inboundFilter.endDate}}" bindchange="onEndDateChange" start="2020-01-01" end="{{today}}">
+            <view class="filter-picker">
+              {{inboundFilter.endDate || '结束日期'}}
+            </view>
+          </picker>
+        </view>
+      </view>
+      <view class="filter-actions">
+        <button class="btn btn-primary" bindtap="queryInbound">查询</button>
+        <button class="btn btn-secondary" bindtap="resetInboundFilter">重置</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 出库筛选条件 -->
+  <view class="filter-section" wx:if="{{activeTab === 'outbound'}}">
+    <view class="filter-summary">
+      <view class="pending-filter-tag" wx:if="{{outboundPendingOnly}}">
+        <text class="pending-filter-text">仅看未出库记录</text>
+        <text class="pending-filter-close" wx:if="{{!outboundOnly}}" bindtap="clearOutboundPendingFilter">×</text>
+      </view>
+      <view class="active-filter-tag" wx:if="{{!outboundPendingOnly && (outboundFilter.customerName || outboundFilter.startDate || outboundFilter.endDate)}}">
+        <text class="active-filter-text">已设置筛选</text>
+      </view>
+      <view class="filter-toggle" bindtap="toggleOutboundFilters">
+        <text>{{showOutboundFilters ? '收起筛选' : '筛选条件'}}</text>
+        <text class="filter-toggle-arrow">{{showOutboundFilters ? '⌃' : '⌄'}}</text>
+      </view>
+    </view>
+    <view class="filter-body outbound-filter-body" wx:if="{{showOutboundFilters}}">
+      <view class="outbound-filter-row">
+        <view class="filter-item compact-name-filter">
+          <text class="filter-label">客户姓名</text>
+          <input class="filter-input" placeholder="客户姓名" value="{{outboundFilter.customerName}}" bindinput="onOutboundFilterInput" data-field="customerName" />
+        </view>
+        <view class="filter-item compact-date-filter">
+          <text class="filter-label">出库日期</text>
+          <view class="date-range-picker compact-date-range">
+            <picker mode="date" value="{{outboundFilter.startDate}}" bindchange="onOutboundStartDateChange" start="2020-01-01" end="{{today}}">
+              <view class="filter-picker">
+                {{outboundFilter.startDate || '开始'}}
+              </view>
+            </picker>
+            <text class="filter-separator">至</text>
+            <picker mode="date" value="{{outboundFilter.endDate}}" bindchange="onOutboundEndDateChange" start="2020-01-01" end="{{today}}">
+              <view class="filter-picker">
+                {{outboundFilter.endDate || '结束'}}
+              </view>
+            </picker>
+          </view>
+        </view>
+      </view>
+      <view class="filter-actions">
+        <button class="btn btn-primary" bindtap="queryOutbound">查询</button>
+        <button class="btn btn-secondary" bindtap="resetOutboundFilter">重置</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 入库记录列表 -->
+  <scroll-view class="records-list" scroll-y wx:if="{{activeTab === 'inbound' && inboundRecords.length > 0}}" bindscrolltolower="loadMoreInbound">
+    <view class="record-list-header">
+      <view class="list-cell date-cell">入库日期</view>
+      <view class="list-cell name-cell">客户姓名</view>
+      <view class="list-cell phone-total-cell">入库数量</view>
+    </view>
+    <view class="record-list-row" wx:for="{{inboundRecords}}" wx:key="_id" bindtap="viewInboundDetail" data-index="{{index}}">
+      <view class="list-cell date-cell">{{item.inboundDate}}</view>
+      <view class="list-cell name-cell">{{item.customerName}}</view>
+      <view class="list-cell phone-total-cell">{{item.phoneTotal}}</view>
+    </view>
+    <view class="load-more" wx:if="{{inboundLoading}}">
+      <text>加载中...</text>
+    </view>
+    <view class="no-more" wx:if="{{!inboundHasMore && inboundRecords.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </scroll-view>
+
+  <!-- 出库记录列表 -->
+  <scroll-view class="records-list" scroll-y wx:if="{{activeTab === 'outbound' && outboundRecords.length > 0}}" bindscrolltolower="loadMoreOutbound">
+      <view class="record-list-header">
+        <view class="list-cell date-cell">日期</view>
+        <view class="list-cell name-cell">客户姓名</view>
+        <view class="list-cell phone-total-cell">手机总数</view>
+        <view class="list-cell outbound-status-cell">状态</view>
+        <view class="list-cell phone-photo-cell" wx:if="{{!outboundOnly}}">手机照片</view>
+      </view>
+      <view class="record-list-row" wx:for="{{outboundRecords}}" wx:key="_id" bindtap="viewOutboundDetail" data-index="{{index}}">
+        <view class="list-cell date-cell">{{item.outboundDate}}</view>
+        <view class="list-cell name-cell">{{item.displayName}}</view>
+        <view class="list-cell phone-total-cell">{{item.phoneTotal}}</view>
+        <view class="list-cell outbound-status-cell">
+          <text class="{{item.outboundStatusClass}}">{{item.outboundStatusText}}</text>
+        </view>
+        <view class="list-cell phone-photo-cell" wx:if="{{!outboundOnly}}">{{item.phonePhotos.length}}</view>
+      </view>
+    <view class="load-more" wx:if="{{outboundLoading}}">
+      <text>加载中...</text>
+    </view>
+    <view class="no-more" wx:if="{{!outboundHasMore && outboundRecords.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </scroll-view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{(activeTab === 'inbound' && inboundRecords.length === 0) || (activeTab === 'outbound' && outboundRecords.length === 0)}}">
+    <text class="empty-text">暂无记录</text>
+  </view>
+
+  <!-- 记录详情弹窗 -->
+  <view class="modal {{showDetail ? 'show' : ''}}" wx:if="{{showDetail}}" bindtap="closeDetail">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">记录详情</text>
+        <text class="modal-close" bindtap="closeDetail">×</text>
+      </view>
+      <scroll-view class="modal-body" scroll-y>
+        <view class="detail-item">
+          <text class="detail-label">客户姓名:</text>
+          <text class="detail-value">{{detailRecord.displayName || detailRecord.customerName}}</text>
+        </view>
+        <view class="detail-item" wx:if="{{detailRecord.outboundNumber}}">
+          <text class="detail-label">出库单号:</text>
+          <text class="detail-value">{{detailRecord.outboundNumber}}</text>
+        </view>
+        <view class="detail-item" wx:if="{{detailRecord.outboundStatus}}">
+          <text class="detail-label">出库状态:</text>
+          <text class="detail-value">{{detailRecord.outboundStatus === 'completed' ? '已出库' : '未出库'}}</text>
+        </view>
+        <view class="detail-item" wx:if="{{detailRecord.trackingNumber}}">
+          <text class="detail-label">物流单号:</text>
+          <text class="detail-value">{{detailRecord.trackingNumber}}</text>
+        </view>
+        <view class="detail-item" wx:if="{{detailRecord.shopName}}">
+          <text class="detail-label">渠道名称:</text>
+          <text class="detail-value">{{detailRecord.shopName}}</text>
+        </view>
+        <view class="detail-item" wx:if="{{detailRecord.typeText}}">
+          <text class="detail-label">渠道类型:</text>
+          <text class="detail-value">{{detailRecord.typeText}}</text>
+        </view>
+        <view class="detail-item">
+          <text class="detail-label">{{detailRecord.inboundDate ? '入库日期:' : '出库日期:'}}</text>
+          <text class="detail-value">{{detailRecord.inboundDate || detailRecord.outboundDate}}</text>
+        </view>
+        <view class="detail-section">
+          <text class="detail-section-title">手机型号</text>
+          <view class="detail-phones">
+            <view class="detail-phone" wx:for="{{detailRecord.phoneModels}}" wx:key="index">
+              {{item.model}} × {{item.quantity}}
+            </view>
+          </view>
+        </view>
+        <view class="detail-section" wx:if="{{detailRecord.packagePhotosThumbnail && detailRecord.packagePhotosThumbnail.length > 0}}">
+          <text class="detail-section-title">包裹照片</text>
+          <view class="detail-photos">
+            <image class="detail-photo {{detailRecord.packagePhotosLoaded[index] ? 'loaded' : ''}}" wx:for="{{detailRecord.packagePhotosThumbnail}}" wx:for-item="photo" wx:key="index" src="{{photo}}" mode="aspectFill" lazy-load bindload="onImageLoad" binderror="onImageError" data-photos-array="packagePhotos" data-index="{{index}}" bindtap="previewImage" data-current="{{detailRecord.packagePhotos[index]}}" data-urls="{{detailRecord.packagePhotos}}" />
+          </view>
+        </view>
+        <view class="detail-section" wx:if="{{detailRecord.phonePhotosThumbnail && detailRecord.phonePhotosThumbnail.length > 0}}">
+          <text class="detail-section-title">手机照片</text>
+          <view class="detail-photos">
+            <image class="detail-photo {{detailRecord.phonePhotosLoaded[index] ? 'loaded' : ''}}" wx:for="{{detailRecord.phonePhotosThumbnail}}" wx:for-item="photo" wx:key="index" src="{{photo}}" mode="aspectFill" lazy-load bindload="onImageLoad" binderror="onImageError" data-photos-array="phonePhotos" data-index="{{index}}" bindtap="previewImage" data-current="{{detailRecord.phonePhotos[index]}}" data-urls="{{detailRecord.phonePhotos}}" />
+          </view>
+        </view>
+        <view class="detail-section ship-section" wx:if="{{detailRecord.outboundStatus === 'pending'}}">
+          <text class="detail-section-title">发货处理</text>
+          <input
+            class="ship-input"
+            value="{{detailTrackingNumber}}"
+            placeholder="填写快递单号"
+            bindinput="onDetailTrackingInput"
+          />
+          <button
+            class="ship-submit-btn"
+            bindtap="completeDetailOutbound"
+            disabled="{{completingOutbound || !detailTrackingNumber}}"
+            loading="{{completingOutbound}}"
+          >
+            完成发货
+          </button>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

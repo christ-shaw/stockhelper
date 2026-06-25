@@ -1,0 +1,532 @@
+.container {
+  width: 100vw;
+  padding: 16rpx 24rpx 0;
+  background: #f5f5f5;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: 0;
+}
+
+/* 标签切换 */
+.tabs {
+  display: flex;
+  background: white;
+  border-radius: 12rpx;
+  padding: 8rpx;
+  margin-bottom: 14rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #999;
+  transition: all 0.3s;
+}
+
+.tab.active {
+  background: #1890ff;
+  color: white;
+  font-weight: bold;
+}
+
+/* 筛选区域 */
+.filter-section {
+  background: white;
+  border-radius: 12rpx;
+  padding: 12rpx 16rpx;
+  margin-bottom: 14rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+}
+
+.filter-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.pending-filter-tag,
+.active-filter-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 8rpx;
+  padding: 8rpx 14rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.pending-filter-tag {
+  background: #fff7e6;
+  border: 1rpx solid #ffd591;
+}
+
+.active-filter-tag {
+  background: #f6ffed;
+  border: 1rpx solid #b7eb8f;
+}
+
+.pending-filter-text {
+  color: #ad4e00;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.active-filter-text {
+  color: #237804;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.pending-filter-close {
+  color: #ad4e00;
+  font-size: 36rpx;
+  line-height: 1;
+  padding-left: 24rpx;
+}
+
+.filter-toggle {
+  height: 52rpx;
+  padding: 0 16rpx;
+  border-radius: 8rpx;
+  background: #f0f7ff;
+  color: #1677ff;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.filter-toggle-arrow {
+  margin-left: 8rpx;
+  font-size: 28rpx;
+}
+
+.filter-body {
+  margin-top: 14rpx;
+}
+
+.outbound-filter-row {
+  display: flex;
+  gap: 16rpx;
+  align-items: flex-end;
+}
+
+.compact-name-filter {
+  width: 180rpx;
+  flex-shrink: 0;
+}
+
+.compact-date-filter {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-item {
+  margin-bottom: 30rpx;
+}
+
+.filter-item:last-child {
+  margin-bottom: 0;
+}
+
+.filter-label {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.filter-input {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.outbound-filter-body .filter-item {
+  margin-bottom: 0;
+}
+
+.outbound-filter-body .filter-label {
+  font-size: 24rpx;
+  margin-bottom: 10rpx;
+}
+
+.outbound-filter-body .filter-input,
+.outbound-filter-body .filter-picker {
+  height: 68rpx;
+  font-size: 24rpx;
+  padding: 0 14rpx;
+}
+
+.date-range-picker {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  width: 100%;
+}
+
+.compact-date-range {
+  gap: 8rpx;
+}
+
+.filter-picker {
+  flex: 1;
+  height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.filter-separator {
+  margin: 0 4rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+
+.btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
+.btn-primary {
+  background: #1890ff;
+  color: white;
+}
+
+.btn-secondary {
+  background: #f5f5f5;
+  color: #666;
+}
+
+/* 记录列表 */
+.records-list {
+  background: white;
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+}
+
+.record-list-header {
+  display: flex;
+  background: #f5f5f5;
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.record-list-row {
+  display: flex;
+  border-top: 1rpx solid #f0f0f0;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.record-list-row:nth-child(even) {
+  background: #fafafa;
+}
+
+.list-cell {
+  padding: 24rpx 16rpx;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-cell {
+  width: 200rpx;
+  flex-shrink: 0;
+}
+
+.name-cell {
+  flex: 1;
+  min-width: 150rpx;
+}
+
+.tracking-cell {
+  flex: 1.5;
+  min-width: 200rpx;
+}
+
+.phone-total-cell {
+  width: 150rpx;
+  flex-shrink: 0;
+}
+
+.phone-photo-cell {
+  width: 150rpx;
+  flex-shrink: 0;
+}
+
+.outbound-status-cell {
+  width: 140rpx;
+  flex-shrink: 0;
+}
+
+.outbound-only-container .date-cell {
+  width: 170rpx;
+}
+
+.outbound-only-container .name-cell {
+  min-width: 130rpx;
+}
+
+.outbound-only-container .phone-total-cell {
+  width: 130rpx;
+}
+
+.outbound-only-container .outbound-status-cell {
+  width: 150rpx;
+}
+
+.status-pending,
+.status-done {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96rpx;
+  height: 44rpx;
+  border-radius: 22rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.status-pending {
+  color: #ad4e00;
+  background: #fff7e6;
+}
+
+.status-done {
+  color: #237804;
+  background: #f6ffed;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 弹窗 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+  z-index: 1000;
+}
+
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  width: 100%;
+  max-height: 80vh;
+  background: white;
+  border-radius: 24rpx 24rpx 0 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+}
+
+.modal.show .modal-content {
+  transform: translateY(0);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 48rpx;
+  color: #999;
+  line-height: 1;
+}
+
+.modal-body {
+  flex: 1;
+  padding: 30rpx;
+}
+
+.detail-item {
+  display: flex;
+  margin-bottom: 24rpx;
+}
+
+.detail-label {
+  font-size: 28rpx;
+  color: #666;
+  min-width: 160rpx;
+}
+
+.detail-value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.detail-section {
+  margin-bottom: 30rpx;
+}
+
+.detail-section-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.detail-phones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.detail-phone {
+  background: #f5f5f5;
+  padding: 12rpx 20rpx;
+  border-radius: 6rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.detail-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.detail-photo {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 8rpx;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  background: #f5f5f5;
+}
+
+.detail-photo.loaded {
+  opacity: 1;
+}
+
+.ship-section {
+  padding-top: 24rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.ship-input {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+  margin-bottom: 20rpx;
+}
+
+.ship-submit-btn {
+  width: 100%;
+  height: 82rpx;
+  line-height: 82rpx;
+  border-radius: 8rpx;
+  background: #1890ff;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
+  padding: 0;
+}
+
+.ship-submit-btn[disabled] {
+  background: #d9d9d9;
+  color: #fff;
+}
+
+/* 记录列表 */
+.records-list {
+  height: calc(100vh - 390rpx);
+  background: white;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+}
+
+.filters-collapsed .records-list {
+  height: calc(100vh - 230rpx);
+}
+
+.outbound-only-container .records-list {
+  height: calc(100vh - 290rpx);
+}
+
+.outbound-only-container.filters-collapsed .records-list {
+  height: calc(100vh - 190rpx);
+}
+
+.load-more {
+  text-align: center;
+  padding: 20rpx;
+  color: #999;
+  font-size: 26rpx;
+}
+
+.no-more {
+  text-align: center;
+  padding: 20rpx;
+  color: #ccc;
+  font-size: 26rpx;
+}

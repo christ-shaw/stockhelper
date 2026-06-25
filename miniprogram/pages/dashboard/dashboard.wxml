@@ -1,0 +1,23 @@
+<!--pages/dashboard/dashboard.wxml-->
+<view class="container">
+  <!-- 日期范围 -->
+  <view class="date-range">
+    <text class="date-range-text">{{dateRangeText}}</text>
+  </view>
+
+  <!-- 记录数图表 -->
+  <view class="chart-card">
+    <canvas type="2d" id="recordChart" class="chart-canvas"></canvas>
+  </view>
+
+  <!-- 台数图表 -->
+  <view class="chart-card">
+    <canvas type="2d" id="phoneChart" class="chart-canvas"></canvas>
+  </view>
+
+  <!-- 翻页按钮 -->
+  <view class="pagination">
+    <button class="btn-prev" bindtap="loadPrevious" hover-class="btn-hover">◀ 前一周</button>
+    <button class="btn-next" bindtap="loadNext" hover-class="btn-hover">后一周 ▶</button>
+  </view>
+</view>

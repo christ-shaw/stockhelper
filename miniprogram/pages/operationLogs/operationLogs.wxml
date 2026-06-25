@@ -1,0 +1,92 @@
+<view class="container">
+  <!-- 筛选条件 -->
+  <view class="filter-section">
+    <view class="filter-item">
+      <text class="filter-label">日志类型</text>
+      <picker mode="selector" range="{{['全部', '入库', '出库']}}" range-key="" value="{{filter.logType === 'inbound' ? 1 : filter.logType === 'outbound' ? 2 : 0}}" bindchange="onLogTypeChange">
+        <view class="filter-picker">
+          {{filter.logType === 'inbound' ? '入库' : filter.logType === 'outbound' ? '出库' : '全部'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="filter-item">
+      <text class="filter-label">操作类型</text>
+      <picker mode="selector" range="{{['全部', '新增', '修改', '删除']}}" value="{{filter.operationType === 'create' ? 1 : filter.operationType === 'update' ? 2 : filter.operationType === 'delete' ? 3 : 0}}" bindchange="onOperationTypeChange">
+        <view class="filter-picker">
+          {{filter.operationType === 'create' ? '新增' : filter.operationType === 'update' ? '修改' : filter.operationType === 'delete' ? '删除' : '全部'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="filter-item">
+      <text class="filter-label">操作人</text>
+      <input class="filter-input" placeholder="输入操作人姓名" value="{{filter.operator}}" bindinput="onFilterChange" data-field="operator" />
+    </view>
+
+    <view class="filter-item">
+      <text class="filter-label">操作时间</text>
+      <view class="date-range-picker">
+        <picker mode="date" value="{{filter.startDate}}" bindchange="onStartDateChange" start="2020-01-01" end="{{today}}">
+          <view class="filter-picker">
+            {{filter.startDate || '开始日期'}}
+          </view>
+        </picker>
+        <text class="filter-separator">至</text>
+        <picker mode="date" value="{{filter.endDate}}" bindchange="onEndDateChange" start="2020-01-01" end="{{today}}">
+          <view class="filter-picker">
+            {{filter.endDate || '结束日期'}}
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="filter-actions">
+      <button class="btn btn-primary" bindtap="queryLogs">查询</button>
+      <button class="btn btn-secondary" bindtap="resetFilter">重置</button>
+    </view>
+  </view>
+
+  <!-- 操作记录列表 -->
+  <view class="logs-list">
+    <view class="log-item" wx:for="{{logs}}" wx:key="_id">
+      <view class="log-header">
+        <view class="log-type-badge" style="background-color: {{item.operationType === 'create' ? '#52c41a' : item.operationType === 'update' ? '#1890ff' : '#ff4d4f'}}">
+          {{item.operationType === 'create' ? '新增' : item.operationType === 'update' ? '修改' : '删除'}}
+        </view>
+        <view class="log-type">{{item.logType === 'inbound' ? '入库' : '出库'}}</view>
+        <view class="log-time">{{item.operationTime}}</view>
+      </view>
+      
+      <view class="log-content">
+        <view class="log-row">
+          <text class="log-label">操作内容：</text>
+          <text class="log-value">{{item.operationContent}}</text>
+        </view>
+        <view class="log-row">
+          <text class="log-label">操作人：</text>
+          <text class="log-value">{{item.operator}}</text>
+        </view>
+        <view class="log-row">
+          <text class="log-label">记录ID：</text>
+          <text class="log-value log-id">{{item.logId}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading-status" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 无更多数据 -->
+    <view class="no-more" wx:if="{{!hasMore && logs.length > 0}}">
+      <text>没有更多数据了</text>
+    </view>
+
+    <!-- 无数据 -->
+    <view class="empty-tip" wx:if="{{logs.length === 0 && !loading}}">
+      <text>暂无操作记录</text>
+    </view>
+  </view>
+</view>
