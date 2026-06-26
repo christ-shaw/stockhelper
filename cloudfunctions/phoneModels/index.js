@@ -5,6 +5,7 @@ cloud.init({
 
 const db = cloud.database();
 const COLLECTION = 'product_models';
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth');
 
 function cleanName(value) {
   return String(value || '').trim();
@@ -229,23 +230,32 @@ async function addModels(brand, models) {
 }
 
 exports.main = async (event) => {
-  const payload = (event && event.data) || event || {};
-  const { action } = payload;
+  try {
+    const payload = (event && event.data) || event || {};
+    const { action } = payload;
+    const writeActions = ['addBrand', 'addModels'];
+    const requiredPermissions = writeActions.includes(action) ? ['models:write'] : [];
+    const auth = await requireMiniappPermission(cloud, db, requiredPermissions);
+    if (!auth.allowed) return deniedResult(auth);
 
-  switch (action) {
-    case 'getProductTree':
-      return await getProductTree();
-    case 'getAllModels':
-      return await getAllModels();
-    case 'getModelsByBrand':
-      return await getModelsByBrand(payload.brand);
-    case 'getBrands':
-      return await getBrands();
-    case 'addBrand':
-      return await addBrand(payload.brand);
-    case 'addModels':
-      return await addModels(payload.brand, payload.models);
-    default:
-      return { success: false, errMsg: '未知的操作' };
+    switch (action) {
+      case 'getProductTree':
+        return await getProductTree();
+      case 'getAllModels':
+        return await getAllModels();
+      case 'getModelsByBrand':
+        return await getModelsByBrand(payload.brand);
+      case 'getBrands':
+        return await getBrands();
+      case 'addBrand':
+        return await addBrand(payload.brand);
+      case 'addModels':
+        return await addModels(payload.brand, payload.models);
+      default:
+        return { success: false, errMsg: '未知的操作' };
+    }
+  } catch (e) {
+    console.error('手机型号云函数失败:', e);
+    return { success: false, errMsg: e.message || '手机型号云函数失败' };
   }
 };

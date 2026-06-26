@@ -5,11 +5,15 @@ cloud.init({
 });
 
 const db = cloud.database();
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth');
 
 exports.main = async (event, context) => {
   const { periodType = 'day', startDate, endDate } = event;
 
   try {
+    const auth = await requireMiniappPermission(cloud, db, ['stats:read']);
+    if (!auth.allowed) return deniedResult(auth);
+
     const formatDate = (date) => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');

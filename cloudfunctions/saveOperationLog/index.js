@@ -4,9 +4,13 @@ cloud.init({
 });
 
 const db = cloud.database();
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth');
 
 exports.main = async (event, context) => {
   try {
+    const auth = await requireMiniappPermission(cloud, db);
+    if (!auth.allowed) return deniedResult(auth);
+
     const { operationType, logType, logId, operationContent, operator, operatorOpenid } = event;
 
     // 参数验证

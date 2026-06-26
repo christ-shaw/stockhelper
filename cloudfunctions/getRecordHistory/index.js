@@ -4,9 +4,13 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth')
 
 exports.main = async (event, context) => {
   try {
+    const auth = await requireMiniappPermission(cloud, db, ['logs:read'])
+    if (!auth.allowed) return deniedResult(auth)
+
     console.log(event)
     const { recordId } = event.data || {}
 

@@ -6,9 +6,13 @@ cloud.init({
 const db = cloud.database();
 const _ = db.command;
 const MAX_LIMIT = 100; // 微信云数据库单次查询最大限制
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth');
 
 exports.main = async (event, context) => {
   try {
+    const auth = await requireMiniappPermission(cloud, db, ['logs:read']);
+    if (!auth.allowed) return deniedResult(auth);
+
     const {
       limit = 20,
       cursor,

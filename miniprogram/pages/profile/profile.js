@@ -59,11 +59,13 @@ Page({
 
       console.log('Profile - 云函数返回:', res.result);
 
-      if (res.result && res.result.isWhitelisted) {
+      if (res.result && (res.result.isAuthorized || res.result.isWhitelisted)) {
         const userInfo = {
           openid: res.result.openid,
           nickname: res.result.nickname,
-          avatarUrl: res.result.avatarUrl
+          avatarUrl: res.result.avatarUrl,
+          role: res.result.role,
+          actionPermissions: res.result.actionPermissions
         };
 
         wx.setStorageSync('userInfo', userInfo);

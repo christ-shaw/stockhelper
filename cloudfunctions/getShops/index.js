@@ -4,6 +4,7 @@ cloud.init({
 });
 
 const db = cloud.database();
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth');
 
 // 获取所有店铺
 async function getAllShops() {
@@ -30,14 +31,22 @@ async function getShopsByType(type) {
 }
 
 exports.main = async (event, context) => {
-  const { action, type } = event;
+  try {
+    const auth = await requireMiniappPermission(cloud, db);
+    if (!auth.allowed) return deniedResult(auth);
 
-  switch (action) {
-    case 'getAllShops':
-      return await getAllShops();
-    case 'getShopsByType':
-      return await getShopsByType(type);
-    default:
-      return { success: false, errMsg: '未知的操作' };
+    const { action, type } = event;
+
+    switch (action) {
+      case 'getAllShops':
+        return await getAllShops();
+      case 'getShopsByType':
+        return await getShopsByType(type);
+      default:
+        return { success: false, errMsg: '未知的操作' };
+    }
+  } catch (e) {
+    console.error('获取店铺失败:', e);
+    return { success: false, errMsg: e.message || '获取店铺失败' };
   }
 };

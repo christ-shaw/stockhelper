@@ -5,13 +5,11 @@ cloud.init({
 
 const db = cloud.database();
 const _ = db.command;
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth');
 
 exports.main = async (event, context) => {
   try {
     const { recordId, type, updateData, operator } = event.data || {};
-
-    // 获取微信上下文
-    const wxContext = cloud.getWXContext();
 
     // 参数校验
     console.log('data=  ',event.data )
@@ -29,6 +27,10 @@ exports.main = async (event, context) => {
         errMsg: '记录类型必须为 inbound 或 outbound'
       };
     }
+
+    const requiredPermission = type === 'inbound' ? 'inbound:update' : 'outbound:update';
+    const auth = await requireMiniappPermission(cloud, db, [requiredPermission]);
+    if (!auth.allowed) return deniedResult(auth);
 
     if (!updateData || Object.keys(updateData).length === 0) {
       return {
@@ -83,7 +85,7 @@ exports.main = async (event, context) => {
             recordId,
             recordType: type,
             modifiedBy: operator || '未知用户',
-            modifiedByOpenid: wxContext.OPENID,
+            modifiedByOpenid: auth.openid,
             modifiedAt: db.serverDate(),
             changes
           }

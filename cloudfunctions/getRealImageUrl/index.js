@@ -5,11 +5,15 @@ cloud.init({
 })
 
 const db = cloud.database()
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth')
 
 exports.main = async (event, context) => {
   const { fileID } = event
 
   try {
+    const auth = await requireMiniappPermission(cloud, db)
+    if (!auth.allowed) return deniedResult(auth)
+
     const result = await cloud.getTempFileURL({
       fileList: [fileID]
     })

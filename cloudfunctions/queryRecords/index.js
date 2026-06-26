@@ -6,6 +6,7 @@ cloud.init({
 const db = cloud.database();
 const _ = db.command;
 const MAX_LIMIT = 100; // 微信云数据库单次查询最大限制
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth');
 
 function trimString(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -45,7 +46,12 @@ function normalizeSkip(cursor) {
 
 exports.main = async (event, context) => {
   try {
-    const { type, limit = 20, cursor, customerName, trackingNumber, startDate, endDate, shopName, channelType, model, _id, hasIssue, pendingOnly } = event.data || {};
+    const payload = event.data || {};
+    const requiredPermission = payload.type === 'inbound' ? 'inbound:read' : 'outbound:read';
+    const auth = await requireMiniappPermission(cloud, db, [requiredPermission]);
+    if (!auth.allowed) return deniedResult(auth);
+
+    const { type, limit = 20, cursor, customerName, trackingNumber, startDate, endDate, shopName, channelType, model, _id, hasIssue, pendingOnly } = payload;
 
     // 根据类型选择集合
     const collectionName = type === 'inbound' ? 'inbound_records' : 'outbound_records';

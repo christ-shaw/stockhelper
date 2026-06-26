@@ -5,9 +5,13 @@ cloud.init({
 
 const db = cloud.database();
 const _ = db.command;
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth');
 
 exports.main = async (event, context) => {
   try {
+    const auth = await requireMiniappPermission(cloud, db, ['outbound:create']);
+    if (!auth.allowed) return deniedResult(auth);
+
     const { customerName, outboundDate, trackingNumber, phoneModels, phonePhotos } = event.data;
 
     // 保存出库记录到 outbound_records 集合,使用客户端传入的日期字符串,不使用serverDate()

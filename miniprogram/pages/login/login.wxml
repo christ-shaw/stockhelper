@@ -14,12 +14,24 @@
     </view>
 
     <!-- 登录按钮 -->
-    <view class="login-actions" wx:if="{{!hasUserInfo && !needInput}}">
+    <view class="login-actions" wx:if="{{!hasUserInfo && !needInput && !unauthorizedOpenid}}">
       <button class="login-btn" bindtap="startLogin">
         <text class="btn-icon">👤</text>
         <text class="btn-text">登录</text>
       </button>
       <text class="login-tip">登录即可使用完整功能</text>
+    </view>
+
+    <!-- 无权限状态 -->
+    <view class="unauthorized-card" wx:if="{{unauthorizedOpenid}}">
+      <text class="unauthorized-title">暂无访问权限</text>
+      <text class="unauthorized-desc">{{unauthorizedMessage}}</text>
+      <view class="openid-box">
+        <text class="openid-label">openid</text>
+        <text class="openid-value">{{unauthorizedOpenid}}</text>
+      </view>
+      <button class="copy-btn" bindtap="copyOpenid">复制 openid</button>
+      <button class="retry-btn" bindtap="startLogin">重新检测</button>
     </view>
 
     <!-- 需要填写昵称和头像 -->

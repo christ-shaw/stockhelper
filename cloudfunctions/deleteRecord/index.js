@@ -5,9 +5,13 @@ cloud.init({
 
 const db = cloud.database();
 const _ = db.command;
+const { requireMiniappPermission, deniedResult } = require('./miniappAuth');
 
 exports.main = async (event, context) => {
   try {
+    const auth = await requireMiniappPermission(cloud, db, ['inbound:delete']);
+    if (!auth.allowed) return deniedResult(auth);
+
     const { _id } = event.data;
 
     // 删除记录
