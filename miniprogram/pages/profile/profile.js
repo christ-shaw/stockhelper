@@ -33,13 +33,6 @@ Page({
     });
   },
 
-  // 跳转到 queryRecords 测试页面
-  goToQueryRecordsTest() {
-    wx.navigateTo({
-      url: '/pages/queryRecordsTest/queryRecordsTest'
-    });
-  },
-
   // 调试：显示用户信息
   showDebugInfo() {
     wx.showModal({

@@ -5,14 +5,6 @@
   </view>
 
   <view class="menu-list">
-    <view class="menu-item" bindtap="goToQueryRecordsTest">
-      <view class="menu-item-left">
-        <text class="menu-icon">🧪</text>
-        <text class="menu-text">queryRecords 测试</text>
-      </view>
-      <text class="menu-arrow">›</text>
-    </view>
-
     <view class="menu-item" bindtap="showDebugInfo">
       <view class="menu-item-left">
         <text class="menu-icon">🔍</text>
