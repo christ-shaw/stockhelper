@@ -58,7 +58,7 @@ Page({
   async loadPhoneModels() {
     try {
       const res = await wx.cloud.callFunction({
-        name: 'phoneModels',
+        name: 'manageProductModels',
         data: { action: 'getProductTree' }
       });
       if (res.result.success) {
