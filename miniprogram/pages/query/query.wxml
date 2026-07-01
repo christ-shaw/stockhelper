@@ -202,12 +202,28 @@
         </view>
         <view class="detail-section ship-section" wx:if="{{detailRecord.outboundStatus === 'pending'}}">
           <text class="detail-section-title">发货处理</text>
-          <input
-            class="ship-input"
-            value="{{detailTrackingNumber}}"
-            placeholder="填写快递单号"
-            bindinput="onDetailTrackingInput"
-          />
+          <view class="ship-tracking-row">
+            <input
+              class="ship-input"
+              value="{{detailTrackingNumber}}"
+              placeholder="手工填写或扫码录入快递单号"
+              bindinput="onDetailTrackingInput"
+            />
+            <button class="ship-scan-btn" size="mini" bindtap="scanDetailTracking">扫码</button>
+          </view>
+
+          <view class="ship-photo-label">发货照片</view>
+          <view class="ship-photo-grid">
+            <view class="ship-photo-item" wx:for="{{detailShipPhotos}}" wx:key="index">
+              <image class="ship-photo" src="{{item}}" mode="aspectFill" data-index="{{index}}" bindtap="previewShipPhoto" />
+              <view class="ship-photo-del" data-index="{{index}}" catchtap="deleteShipPhoto">×</view>
+            </view>
+            <view class="ship-photo-add" wx:if="{{detailShipPhotos.length < 9}}" bindtap="chooseShipPhotos">
+              <text class="ship-photo-add-icon">＋</text>
+              <text class="ship-photo-add-text">拍照/相册</text>
+            </view>
+          </view>
+
           <button
             class="ship-submit-btn"
             bindtap="completeDetailOutbound"

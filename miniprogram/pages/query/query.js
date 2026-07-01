@@ -52,6 +52,7 @@ Page({
     showDetail: false,
     detailRecord: {},
     detailTrackingNumber: '',
+    detailShipPhotos: [],
     completingOutbound: false
   },
 
@@ -399,6 +400,7 @@ Page({
     this.setData({
       detailRecord: processedRecord,
       detailTrackingNumber: processedRecord.trackingNumber || '',
+      detailShipPhotos: [],
       showDetail: true
     });
     wx.hideLoading();
@@ -407,7 +409,8 @@ Page({
   closeDetail() {
     this.setData({
       showDetail: false,
-      detailTrackingNumber: ''
+      detailTrackingNumber: '',
+      detailShipPhotos: []
     });
   },
 
@@ -415,6 +418,53 @@ Page({
     this.setData({
       detailTrackingNumber: e.detail.value
     });
+  },
+
+  // 扫码录入快递单号
+  scanDetailTracking() {
+    wx.scanCode({
+      scanType: ['qrCode', 'barCode'],
+      success: (res) => {
+        this.setData({ detailTrackingNumber: res.result });
+        wx.showToast({ title: '扫码成功', icon: 'success' });
+      },
+      fail: (err) => {
+        if (err.errMsg !== 'scanCode:fail cancel') {
+          wx.showToast({ title: '扫码失败', icon: 'none' });
+        }
+      }
+    });
+  },
+
+  // 拍摄/选择发货照片
+  chooseShipPhotos() {
+    const current = this.data.detailShipPhotos || [];
+    const maxCount = 9 - current.length;
+    if (maxCount <= 0) {
+      wx.showToast({ title: '最多上传9张照片', icon: 'none' });
+      return;
+    }
+    wx.chooseImage({
+      count: maxCount,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        this.setData({ detailShipPhotos: [...current, ...res.tempFilePaths] });
+      }
+    });
+  },
+
+  deleteShipPhoto(e) {
+    const index = e.currentTarget.dataset.index;
+    const photos = [...this.data.detailShipPhotos];
+    photos.splice(index, 1);
+    this.setData({ detailShipPhotos: photos });
+  },
+
+  previewShipPhoto(e) {
+    const index = e.currentTarget.dataset.index;
+    const photos = this.data.detailShipPhotos;
+    wx.previewImage({ current: photos[index], urls: photos });
   },
 
   async completeDetailOutbound() {
@@ -432,15 +482,28 @@ Page({
 
     const userInfo = wx.getStorageSync('userInfo') || {};
     this.setData({ completingOutbound: true });
-    wx.showLoading({ title: '发货中...' });
 
     try {
+      // 上传发货照片到云存储
+      const localPhotos = this.data.detailShipPhotos || [];
+      const phonePhotoUrls = [];
+      if (localPhotos.length > 0) {
+        wx.showLoading({ title: '上传照片中...' });
+        for (let i = 0; i < localPhotos.length; i++) {
+          const cloudPath = `outbound/ship/${record._id}_${Date.now()}_${i}.jpg`;
+          const uploadResult = await wx.cloud.uploadFile({ cloudPath, filePath: localPhotos[i] });
+          phonePhotoUrls.push(uploadResult.fileID);
+        }
+      }
+
+      wx.showLoading({ title: '发货中...' });
       const res = await wx.cloud.callFunction({
         name: 'completeOutbound',
         data: {
           outboundId: record._id,
           trackingNumber,
           completedBy: userInfo.nickname || '未知用户',
+          phonePhotos: phonePhotoUrls,
           phoneModels: record.phoneModels || []
         }
       });
@@ -452,7 +515,8 @@ Page({
         this.setData({
           completingOutbound: false,
           showDetail: false,
-          detailTrackingNumber: ''
+          detailTrackingNumber: '',
+          detailShipPhotos: []
         });
         this.queryOutbound();
       } else {
