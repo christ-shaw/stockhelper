@@ -113,8 +113,34 @@
     </view>
   </scroll-view>
 
-  <!-- 出库记录列表 -->
-  <scroll-view class="records-list" scroll-y wx:if="{{activeTab === 'outbound' && outboundRecords.length > 0}}" bindscrolltolower="loadMoreOutbound">
+  <!-- 待出库卡片列表（从首页待处理出库单进入） -->
+  <scroll-view class="card-list" scroll-y wx:if="{{activeTab === 'outbound' && outboundOnly && outboundRecords.length > 0}}" bindscrolltolower="loadMoreOutbound">
+    <view class="ob-card" wx:for="{{outboundRecords}}" wx:key="_id" bindtap="viewOutboundDetail" data-index="{{index}}">
+      <view class="ob-card-top">
+        <text class="ob-card-date">{{item.outboundDate || '—'}}</text>
+        <text class="ob-card-status {{item.outboundStatusClass}}">{{item.outboundStatusText}}</text>
+      </view>
+      <view class="ob-card-name">{{item.displayName}}</view>
+      <view class="ob-card-sales" wx:if="{{item.salesperson}}">负责人：{{item.salesperson}}</view>
+      <view class="ob-card-divider"></view>
+      <view class="ob-card-models">
+        <view class="ob-model" wx:for="{{item.phoneModels}}" wx:for-item="pm" wx:for-index="pi" wx:key="pi" hidden="{{!item.expanded && pi >= 3}}">
+          <text class="ob-model-name">{{pm.model}}</text>
+          <text class="ob-model-qty">×{{pm.quantity}}</text>
+        </view>
+      </view>
+      <view class="ob-card-toggle" wx:if="{{item.phoneModels.length > 3}}" catchtap="toggleCardModels" data-index="{{index}}">
+        {{item.expanded ? '收起' : '展开全部（共' + item.phoneModels.length + '款）'}}
+        <text class="ob-toggle-arrow">{{item.expanded ? '︿' : '﹀'}}</text>
+      </view>
+      <view class="ob-card-remark" wx:if="{{item.remark}}">备注：{{item.remark}}</view>
+    </view>
+    <view class="load-more" wx:if="{{outboundLoading}}"><text>加载中...</text></view>
+    <view class="no-more" wx:if="{{!outboundHasMore && outboundRecords.length > 0}}"><text>没有更多了</text></view>
+  </scroll-view>
+
+  <!-- 出库记录列表（普通查询：表格） -->
+  <scroll-view class="records-list" scroll-y wx:if="{{activeTab === 'outbound' && !outboundOnly && outboundRecords.length > 0}}" bindscrolltolower="loadMoreOutbound">
       <view class="record-list-header">
         <view class="list-cell date-cell">日期</view>
         <view class="list-cell name-cell">客户姓名</view>

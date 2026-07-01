@@ -467,6 +467,13 @@ Page({
     wx.previewImage({ current: photos[index], urls: photos });
   },
 
+  // 展开/收起卡片的手机型号（超过3款时）
+  toggleCardModels(e) {
+    const index = e.currentTarget.dataset.index;
+    const expanded = !this.data.outboundRecords[index].expanded;
+    this.setData({ [`outboundRecords[${index}].expanded`]: expanded });
+  },
+
   async completeDetailOutbound() {
     const record = this.data.detailRecord;
     const trackingNumber = this.data.detailTrackingNumber ? this.data.detailTrackingNumber.trim() : '';
