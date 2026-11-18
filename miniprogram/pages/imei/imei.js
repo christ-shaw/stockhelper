@@ -6,7 +6,7 @@ Page({
   data: {
     taskName: '', model: '', total: null, completed: false,
     book: imei.emptyBook(),
-    countOptions: [1, 2, 3, 4, 5, 6, 7, 8],
+    countOptions: imei.countOptions,
     candidates: [],
     selectedCount: 0,
     canRecord: false,
@@ -19,6 +19,7 @@ Page({
     exportNotice: '',
     storageError: '',
     status: '',
+    duplicateNotice: '',
     history: [],
     historyLimit: HISTORY_PAGE_SIZE,
     phoneCount: 0,
@@ -62,6 +63,7 @@ Page({
       try { this.loadTask(this.task.id); }
       catch (error) { this.setData({ storageError: error.message || '读取任务失败' }); }
     }
+    this.showDuplicateAlert();
   },
 
   onHide() { this.hidden = true; },
@@ -135,7 +137,15 @@ Page({
     const { book, remaining } = this.data;
     const canRecord = !this.data.completed && !book.groupComplete && selected.length > 0 && selected.length <= remaining
       && (!book.checkDigit || selected.every(item => item.checksumValid));
-    this.setData({ candidates, selectedCount: selected.length, canRecord, status: '', exportNotice: '' });
+    this.setData({ candidates, selectedCount: selected.length, canRecord, status: '', duplicateNotice: '', exportNotice: '' });
+  },
+
+  showDuplicateAlert() {
+    if (!this.duplicateAlertPending || this.hidden || this.disposed) return;
+    this.duplicateAlertPending = false;
+    if (this.data.duplicateNotice && !this.data.storageError) {
+      wx.showModal({ title: 'IMEI 号码重复', content: this.data.duplicateNotice, showCancel: false, confirmText: '知道了' });
+    }
   },
 
   addCandidates(values, source) {
@@ -143,23 +153,31 @@ Page({
     if (this.data.completed || book.groupComplete || this.data.storageError) return;
     const known = imei.knownValues(book);
     const existing = new Set(candidates.map(item => item.value));
+    const duplicates = values.filter(value => known.has(value) || existing.has(value));
     const added = values.filter(value => !known.has(value) && !existing.has(value));
-    if (!added.length) {
-      const status = values.some(value => known.has(value))
-        ? '这个 IMEI 已录入，请核对手机或选择另一条码'
-        : '这个 IMEI 已采集，请选同一台手机的另一条码';
-      this.setData({ status });
-      return;
-    }
     if (candidates.length + added.length > 24) {
       this.setData({ status: '候选最多 24 条，请逐条采集' });
-      return;
+    } else if (added.length) {
+      const selected = candidates.length + added.length <= remaining;
+      this.setCandidates([
+        ...(selected ? candidates : candidates.map(item => ({ ...item, selected: false }))),
+        ...added.map(value => ({ value, source, selected, checksumValid: imei.validChecksum(value) }))
+      ]);
     }
-    const selected = candidates.length + added.length <= remaining;
-    this.setCandidates([
-      ...(selected ? candidates : candidates.map(item => ({ ...item, selected: false }))),
-      ...added.map(value => ({ value, source, selected, checksumValid: imei.validChecksum(value) }))
-    ]);
+    if (duplicates.length) {
+      const slots = book.pending.concat(candidates.filter(item => item.selected).map(item => item.value));
+      const messages = duplicates.map(value => {
+        const slot = slots.indexOf(value);
+        if (slot >= 0) return `${value} 已采集为本台 IMEI${slot + 1}。`;
+        return existing.has(value) ? `${value} 已在本台候选中。` : `${value} 已在本任务的手机记录中。`;
+      });
+      const next = book.pending.length + this.data.selectedCount + 1;
+      messages.push(next <= book.perPhone && this.data.candidates.length < remaining
+        ? `请${source === '手动' ? '输入' : '扫描'}本台的 IMEI${next}。` : '请核对本台候选号码。');
+      this.setData({ duplicateNotice: messages.join('\n'), status: '' });
+      this.duplicateAlertPending = true;
+      this.showDuplicateAlert();
+    }
   },
 
   toggleCandidate(e) {

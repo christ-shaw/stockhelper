@@ -24,6 +24,8 @@ button.danger { color: #c45050; }
 button.manual-toggle { display: flex; align-items: center; gap: 8rpx; min-height: 64rpx; padding: 0 4rpx; font-size: 23rpx; }
 .manual-chevron { font-size: 24rpx; }
 .capture-panel { padding: 20rpx; }
+.duplicate-notice { margin-top: 16rpx; padding: 14rpx 18rpx; color: #942522; background: #fff0ee; border-left: 6rpx solid #c13530; border-radius: 8rpx; font-size: 25rpx; line-height: 1.5; white-space: pre-line; }
+.duplicate-title { display: block; font-weight: 700; }
 .manual-row { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 12rpx; margin-top: 8rpx; align-items: center; }
 .manual-row input { box-sizing: border-box; width: 100%; min-width: 0; font-size: 26rpx; background: #f4f6fa; border-radius: 12rpx; padding: 0 16rpx; height: 76rpx; }
 .manual-row button.small-button { width: 100%; min-width: 0; height: 76rpx; margin: 0; padding: 0; font-size: 24rpx; line-height: 76rpx; white-space: nowrap; }

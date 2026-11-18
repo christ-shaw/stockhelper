@@ -59,16 +59,17 @@ function openTaskStore(api) {
     }
     return ids.map(get).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
-  function create(name, model, quantity) {
+  function create(name, model, quantity, perPhone) {
     checkAccount();
     name = name.trim();
     model = model.trim();
     if (!name) throw new Error('请输入任务名称');
     if (!model) throw new Error('请输入手机型号');
     const total = parseTotal(quantity);
+    const book = imei.setCount(imei.emptyBook(), perPhone);
     const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
     if (api.getStorageSync(prefix + id)) throw new Error('创建失败，请重试');
-    return writeNew(id, name, model, total, { ...imei.emptyBook(), currentModel: model });
+    return writeNew(id, name, model, total, { ...book, currentModel: model });
   }
   function update(previous, book, status = 'active') {
     const task = get(previous.id);

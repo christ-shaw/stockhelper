@@ -143,7 +143,7 @@ function mockWeChat() {
 function loadPage(stored = '', overrides = {}) {
   const mock = mockWeChat();
   const { wx, storage, writes } = mock;
-  const task = openTaskStore(wx).create('测试任务', stored.currentModel || '测试型号', '');
+  const task = openTaskStore(wx).create('测试任务', stored.currentModel || '测试型号', '', 2);
   if (stored) storage.set(writes[0].key, { ...task, book: stored });
   writes.length = 0;
   Object.assign(wx, overrides);
@@ -223,7 +223,7 @@ test('WeChat scanCode preserves a partial group on cancel, EID, duplicate and fa
     const scanning = page.scanWithWeChat();
     call[callback](payload);
     await scanning;
-    if (message) assert.match(page.data.status, message);
+    if (message) assert.match(payload.result === A ? page.data.duplicateNotice : page.data.status, message);
     else assert.equal(page.data.status, previousStatus);
     assert.equal(page.data.wechatScanBusy, false);
     assert.equal(page.data.candidates.length, 1);
@@ -446,6 +446,16 @@ test('wizard validates each step, preserves back navigation, creates once and li
   wizard.previous();
   assert.equal(wizard.data.model, 'iPhone 16');
   wizard.next();
+  wizard.next();
+  assert.equal(wizard.data.step, 3);
+  assert.equal(wizard.data.perPhone, null);
+  assert.match(wizard.data.error, /IMEI 数量/);
+  wizard.chooseCount({ currentTarget: { dataset: { count: 3 } } });
+  wizard.next();
+  wizard.previous();
+  assert.equal(wizard.data.perPhone, 3);
+  wizard.next();
+  assert.equal(wizard.data.step, 4);
   for (const invalid of ['0', '-1', '2.5', '1e3']) {
     input('total', invalid);
     wizard.next();
@@ -458,6 +468,7 @@ test('wizard validates each step, preserves back navigation, creates once and li
   assert.equal(writes.length, 1);
   const task = writes[0].value;
   assert.equal(task.name, '到货盘点');
+  assert.equal(task.book.perPhone, 3);
   assert.equal(task.model, 'iPhone 16');
   assert.equal(task.total, null);
   assert.equal(task.status, 'active');
@@ -471,8 +482,8 @@ test('wizard validates each step, preserves back navigation, creates once and li
 test('resume a task from the list, count complete phones and confirm completion only once', async () => {
   const { wx, messages } = mockWeChat();
   const store = openTaskStore(wx);
-  const task = store.create('任务一', 'iPhone', '1');
-  const other = store.create('任务二', '三星', '');
+  const task = store.create('任务一', 'iPhone', '1', 2);
+  const other = store.create('任务二', '三星', '', 2);
   const list = mountPage('tasks', wx);
   list.openTask({ currentTarget: { dataset: { id: task.id, scan: true } } });
   assert.equal(messages.pop().url, '/pages/imei/imei?id=' + task.id + '&scan=1');
@@ -519,7 +530,7 @@ test('resume a task from the list, count complete phones and confirm completion 
 test('manual completion with no target keeps saved partial phone visible and excludes it from completed count', () => {
   const { wx, messages } = mockWeChat();
   const store = openTaskStore(wx);
-  const task = store.create('按实际数量采集', 'Pixel', '');
+  const task = store.create('按实际数量采集', 'Pixel', '', 2);
   const page = mountPage('imei', wx, { id: task.id });
   page.addCandidates([A], '手动');
   page.acceptSelected();
@@ -547,7 +558,7 @@ test('legacy migration is account scoped, retryable after storage failure and pr
   const [legacy] = store.list();
   assert.deepEqual(legacy.book, book);
   assert.equal(store.list().length, 1);
-  const second = store.create('另一项', 'iPhone', 2);
+  const second = store.create('另一项', 'iPhone', 2, 2);
   storage.set('userInfo', { openid: 'test-user:other' });
   assert.throws(() => store.get(legacy.id), /账号/);
   const another = openTaskStore(wx);
@@ -559,9 +570,64 @@ test('legacy migration is account scoped, retryable after storage failure and pr
 test('stale task updates cannot overwrite newer scans or reopen completed tasks', () => {
   const { wx } = mockWeChat();
   const store = openTaskStore(wx);
-  const original = store.create('分组采集', 'iPhone', '');
+  const original = store.create('分组采集', 'iPhone', '', 2);
   const updated = store.update(original, imei.acceptBatch(original.book, [A]));
   assert.throws(() => store.update(original, original.book), /更新/);
   store.update(updated, updated.book, 'completed');
   assert.throws(() => store.update(updated, imei.emptyBook()), /任务已完成/);
+});
+
+test('native duplicate IMEI2 is visibly rejected after returning to the page, and the next distinct IMEI completes the group', async () => {
+  let call;
+  const { page, messages, writes } = loadPage('', { scanCode(options) { call = options; } });
+  page.addCandidates([A], '微信扫一扫');
+  const scan = page.scanWithWeChat();
+  page.onHide();
+  call.success({ result: A });
+  await scan;
+  assert.equal(messages.length, 0);
+  page.onShow();
+  page.onShow();
+  assert.equal(messages.length, 1);
+  assert.match(messages[0].title, /重复/);
+  assert.match(messages[0].content, new RegExp(A + '.*IMEI1'));
+  assert.match(page.data.duplicateNotice, /请扫描本台的 IMEI2/);
+  assert.equal(page.data.candidates.length, 1);
+  assert.equal(writes.length, 0);
+  const retry = page.scanWithWeChat();
+  call.success({ result: B });
+  await retry;
+  assert.equal(page.data.duplicateNotice, '');
+  page.acceptSelected();
+  assert.deepEqual(writes[0].value.book.phones[0].imeis, [A, B]);
+});
+
+test('manual duplicates are rejected for both a saved first slot and another phone in the task', () => {
+  const first = imei.acceptBatch(imei.emptyBook(), [A, B]);
+  const pending = imei.acceptBatch(imei.nextGroup(first), [C]);
+  const { page, messages, writes } = loadPage(pending);
+  for (const value of [C, A]) {
+    page.onManualInput({ detail: { value } });
+    page.addManual();
+    const modal = messages.pop();
+    assert.match(modal.title, /重复/);
+    assert.ok(modal.content.includes(value));
+    assert.match(modal.content, /请输入本台的 IMEI2/);
+    assert.match(modal.content, value === C ? /本台 IMEI1/ : /本任务的手机记录/);
+    assert.equal(page.data.candidates.length, 0);
+  }
+  assert.equal(writes.length, 0);
+});
+
+test('new tasks require an explicit supported IMEI count and persist it on reopen', () => {
+  const { wx, writes } = mockWeChat();
+  const store = openTaskStore(wx);
+  for (const invalid of [undefined, null, 0, 1.5, 9]) {
+    assert.throws(() => store.create('任务', '型号', '', invalid), /每台数量/);
+  }
+  assert.equal(writes.length, 0);
+  for (const count of imei.countOptions) {
+    const task = store.create('任务', '型号', '', count);
+    assert.equal(mountPage('imei', wx, { id: task.id }).data.remaining, count);
+  }
 });

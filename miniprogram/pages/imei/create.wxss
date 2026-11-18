@@ -1,2 +1,6 @@
 @import "./imei.wxss";
 .wizard-input { background: #f4f6fa; border-radius: 12rpx; height: 84rpx; padding: 0 20rpx; font-size: 28rpx; margin: 24rpx 0; }
+.step-progress { flex-shrink: 0; }
+.count-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12rpx; margin: 24rpx 0; }
+button.count-option { width: 100%; padding: 0; line-height: 76rpx; background: #f4f6fa; color: #35445d; }
+button.count-option.chosen { background: #5268cf; color: #fff; font-weight: 600; }

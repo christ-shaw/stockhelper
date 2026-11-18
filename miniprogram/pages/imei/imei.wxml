@@ -51,6 +51,10 @@
         <button class="primary" bindtap="nextGroup" disabled="{{exporting || wechatScanBusy}}">开始下一台</button>
       </view>
       <block wx:else>
+        <view wx:if="{{duplicateNotice}}" class="duplicate-notice" aria-role="alert">
+          <text class="duplicate-title">IMEI 重复</text>
+          <text>{{duplicateNotice}}</text>
+        </view>
         <view wx:if="{{book.pending.length}}" class="pending-list">
           <view wx:for="{{book.pending}}" wx:key="*this" class="pending-row">
             <text class="muted">IMEI{{index + 1}}</text><text class="imei-number" selectable>{{item}}</text><text class="saved">已保存</text>

@@ -1,5 +1,6 @@
 // Keep IMEIs as strings, including leading zeroes. No database writes are made here.
 const MAX_PER_PHONE = 8;
+const countOptions = Array.from({ length: MAX_PER_PHONE }, (_, index) => index + 1);
 
 function validFormat(value) {
   return typeof value === 'string' && /^[0-9]{15}$/.test(value);
@@ -102,5 +103,5 @@ function toCsv(book) {
   return '\uFEFF' + lines.join('\r\n') + '\r\n';
 }
 
-module.exports = { validFormat, validChecksum, emptyBook, validateBook, knownValues, extractBarcode,
+module.exports = { countOptions, validFormat, validChecksum, emptyBook, validateBook, knownValues, extractBarcode,
   acceptBatch, setCount, nextGroup, undo, toCsv };

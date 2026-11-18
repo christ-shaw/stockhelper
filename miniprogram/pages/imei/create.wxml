@@ -1,16 +1,19 @@
 <view class="imei-page">
   <view class="panel">
     <view class="section-heading">
-      <text class="panel-title">{{step === 1 ? '任务名称' : (step === 2 ? '手机型号' : '计划扫码台数')}}</text>
-      <text class="muted">第 {{step}} / 3 步</text>
+      <text class="panel-title">{{step === 1 ? '任务名称' : (step === 2 ? '手机型号' : (step === 3 ? '每台手机要录入几个 IMEI？' : '计划扫码台数'))}}</text>
+      <text class="muted step-progress">第 {{step}} / 4 步</text>
     </view>
     <input wx:if="{{step === 1}}" class="wizard-input" value="{{name}}" data-field="name" bindinput="onInput" placeholder="例如：门店到货盘点" maxlength="100" confirm-type="next" bindconfirm="next" />
     <input wx:elif="{{step === 2}}" class="wizard-input" value="{{model}}" data-field="model" bindinput="onInput" placeholder="例如：iPhone 16 Pro" maxlength="100" confirm-type="next" bindconfirm="next" />
+    <view wx:elif="{{step === 3}}" class="count-options" aria-role="radiogroup">
+      <button wx:for="{{countOptions}}" wx:key="*this" class="count-option {{perPhone === item ? 'chosen' : ''}}" aria-role="radio" aria-checked="{{perPhone === item}}" data-count="{{item}}" bindtap="chooseCount">{{item}} 个</button>
+    </view>
     <input wx:else class="wizard-input" value="{{total}}" data-field="total" bindinput="onInput" type="number" placeholder="选填，可直接创建" confirm-type="done" bindconfirm="next" disabled="{{!!createdId}}" />
     <view wx:if="{{error}}" class="error-panel">{{error}}</view>
     <view class="record-tools">
       <button wx:if="{{step > 1 && !createdId}}" class="secondary" bindtap="previous" disabled="{{submitting}}">上一步</button>
-      <button class="primary" bindtap="next" disabled="{{submitting}}">{{createdId ? '打开任务详情' : (step === 3 ? '创建任务' : '下一步')}}</button>
+      <button class="primary" bindtap="next" disabled="{{submitting}}">{{createdId ? '打开任务详情' : (step === 4 ? '创建任务' : '下一步')}}</button>
     </view>
   </view>
 </view>
