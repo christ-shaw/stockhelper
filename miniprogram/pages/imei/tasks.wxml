@@ -1,0 +1,17 @@
+<view class="imei-page">
+  <view wx:if="{{error}}" class="panel error-panel">{{error}}</view>
+  <block wx:else>
+    <button class="primary create-button" bindtap="createTask">新建扫码任务</button>
+    <view wx:if="{{!tasks.length}}" class="panel empty">暂无扫码任务</view>
+    <view wx:for="{{tasks}}" wx:key="id" class="panel task-row" data-id="{{item.id}}" bindtap="openTask" aria-role="button">
+      <view class="section-heading">
+        <text class="panel-title task-name">{{item.name}}</text>
+        <text class="badge {{item.status === 'completed' ? 'badge-success' : ''}}">{{item.status === 'completed' ? '已完成' : '进行中'}}</text>
+      </view>
+      <view class="task-meta">
+        <text class="muted">创建于 {{item.createdAt}}</text>
+        <button wx:if="{{item.status === 'active'}}" class="small-button" data-id="{{item.id}}" data-scan="{{true}}" catchtap="openTask">继续扫码</button>
+      </view>
+    </view>
+  </block>
+</view>

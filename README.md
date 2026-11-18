@@ -10,3 +10,7 @@
 
 - [云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)
 
+## IMEI 扫码
+
+从首页「IMEI扫码」进入本账号的扫码任务列表。可新建任务，按手机型号和计划台数采集，继续未完成的任务，或查看完成记录并导出 CSV。任务保存在本机，扫码使用微信原生扫一扫。使用方法和验证说明见 [IMEI扫码说明](./IMEI扫码说明.md)。
+

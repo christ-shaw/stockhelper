@@ -1,0 +1,138 @@
+<view class="imei-page">
+  <view wx:if="{{storageError}}" class="panel error-panel">
+    <view class="panel-title">采集记录暂不可用</view>
+    <text>{{storageError}}</text>
+  </view>
+  <block wx:elif="{{taskName}}">
+    <view class="panel task-overview">
+      <view class="section-heading">
+        <view><text class="muted">手机型号</text><view class="task-name panel-title">{{model || '未填写'}}</view></view>
+        <text class="badge {{completed ? 'badge-success' : ''}}">{{completed ? '已完成' : '进行中'}}</text>
+      </view>
+      <view class="task-stats">
+        <view><text class="muted">手机总数量</text><view class="stat-value">{{total === null ? '未设置' : total + ' 台'}}</view></view>
+        <view><text class="muted">已完成手机数量</text><view class="stat-value">{{phoneCount}} 台</view></view>
+      </view>
+      <view wx:if="{{!completed}}" class="finish-row">
+        <text wx:if="{{total !== null && phoneCount >= total}}" class="saved">已达到计划台数</text>
+        <button class="text-button finish-task" bindtap="finishTask" disabled="{{wechatScanBusy || exporting}}">完成任务</button>
+      </view>
+    </view>
+
+    <block wx:if="{{!completed}}">
+    <view class="settings-toolbar">
+      <text class="settings-summary">每台 {{book.perPhone}} 个 IMEI</text>
+      <button class="small-button settings-toggle" bindtap="toggleSettings" aria-expanded="{{showSettings}}">{{showSettings ? '收起设置' : '设置'}}</button>
+    </view>
+
+    <view wx:if="{{showSettings}}" class="panel">
+      <view class="panel-title">本任务采集设置</view>
+      <view class="setting-row">
+        <text>每台 IMEI 数量</text>
+        <picker range="{{countOptions}}" value="{{book.perPhone - 1}}" bindchange="onCountChange" disabled="{{book.pending.length > 0 || wechatScanBusy}}">
+          <view class="picker-value">{{book.perPhone}} 个 <text class="muted">⌄</text></view>
+        </picker>
+      </view>
+      <view class="setting-row">
+        <text>检查 IMEI 校验位</text>
+        <switch checked="{{book.checkDigit}}" color="#5268cf" bindchange="onCheckDigitChange" disabled="{{wechatScanBusy}}" />
+      </view>
+    </view>
+
+    <view class="panel capture-panel">
+      <view class="section-heading">
+        <text class="panel-title">{{book.groupComplete ? '本台已完成' : '当前手机'}}</text>
+        <text class="badge {{book.groupComplete ? 'badge-success' : ''}}">{{book.groupComplete ? '已保存' : (book.pending.length + selectedCount) + ' / ' + book.perPhone}}</text>
+      </view>
+      <view wx:if="{{book.groupComplete}}" class="completed">
+        <view class="complete-mark">✓</view>
+        <view>第 {{phoneCount}} 台已保存</view>
+        <text class="muted">请换好下一台手机再继续</text>
+        <button class="primary" bindtap="nextGroup" disabled="{{exporting || wechatScanBusy}}">开始下一台</button>
+      </view>
+      <block wx:else>
+        <view wx:if="{{book.pending.length}}" class="pending-list">
+          <view wx:for="{{book.pending}}" wx:key="*this" class="pending-row">
+            <text class="muted">IMEI{{index + 1}}</text><text class="imei-number" selectable>{{item}}</text><text class="saved">已保存</text>
+          </view>
+        </view>
+        <button wx:if="{{canRecord && selectedCount === remaining}}" class="primary" bindtap="acceptSelected" disabled="{{wechatScanBusy}}">确认本台</button>
+        <button wx:elif="{{candidates.length < remaining}}" class="primary" bindtap="scanWithWeChat" loading="{{wechatScanBusy}}" disabled="{{wechatScanBusy || exporting}}">
+          {{book.pending.length || selectedCount ? '继续扫 IMEI' + (book.pending.length + selectedCount + 1) : (phoneCount ? '继续扫码' : '开始扫码')}}
+        </button>
+        <view class="capture-help">
+          <text class="capture-hint">{{candidates.length >= remaining ? '请在下方核对号码和顺序' : '可使用微信扫一扫或从相册选图'}}</text>
+          <button class="text-button manual-toggle" bindtap="toggleManualInput" disabled="{{wechatScanBusy}}" aria-expanded="{{showManualInput}}">{{showManualInput ? '收起输入' : '手动输入'}}<text class="manual-chevron">{{showManualInput ? '⌃' : '⌄'}}</text></button>
+        </view>
+        <view wx:if="{{showManualInput}}" class="manual-row">
+          <input type="number" value="{{manualInput}}" focus="{{showManualInput}}" maxlength="64" placeholder="手动输入 15 位 IMEI" bindinput="onManualInput" bindconfirm="addManual" confirm-type="done" disabled="{{wechatScanBusy}}" />
+          <button class="small-button" bindtap="addManual" disabled="{{wechatScanBusy || !manualInput}}">添加候选</button>
+        </view>
+        <view wx:if="{{status}}" class="status">{{status}}</view>
+      </block>
+    </view>
+
+    <view wx:if="{{candidates.length && !book.groupComplete}}" class="panel">
+      <view class="section-heading">
+        <text class="panel-title">核对候选 · {{candidates.length}} 个</text>
+        <button class="text-button" bindtap="clearCandidates" disabled="{{wechatScanBusy}}">清空候选</button>
+      </view>
+      <text class="helper">勾选本台号码，按列表顺序录入，可点“上移”调整。</text>
+      <view wx:for="{{candidates}}" wx:key="value" class="candidate {{item.selected ? 'candidate-selected' : ''}}">
+        <view class="candidate-main" data-value="{{item.value}}" bindtap="toggleCandidate" aria-role="checkbox" aria-checked="{{item.selected}}" aria-label="{{item.value}}">
+          <text class="checkbox {{item.selected ? 'checked' : ''}}">{{item.selected ? '✓' : ''}}</text>
+          <view class="candidate-info">
+            <text class="imei-number">{{item.value}}</text>
+            <view class="candidate-note">{{item.source}}<text wx:if="{{!item.checksumValid}}" class="warning"> · 校验位不匹配，请核对</text></view>
+          </view>
+        </view>
+        <view class="candidate-actions">
+          <button wx:if="{{index > 0}}" class="text-button" data-index="{{index}}" bindtap="moveCandidateUp">上移</button>
+          <button class="text-button danger" data-value="{{item.value}}" bindtap="removeCandidate">移除</button>
+        </view>
+      </view>
+      <view wx:if="{{selectedCount > remaining}}" class="warning helper">所选数量超出本台所需，请仅选择属于本台的号码。</view>
+      <button wx:if="{{selectedCount > 0 && selectedCount < remaining}}" class="secondary" bindtap="acceptSelected" disabled="{{!canRecord || wechatScanBusy}}">先保存已选的 {{selectedCount}} 个</button>
+    </view>
+
+    </block>
+
+    <view wx:if="{{completed && book.pending.length}}" class="panel">
+      <view class="panel-title">未完成手机的已保存号码</view>
+      <view wx:for="{{book.pending}}" wx:key="*this" class="pending-row">
+        <text class="muted">IMEI{{index + 1}}</text><text class="imei-number" selectable>{{item}}</text>
+      </view>
+    </view>
+    <view class="panel">
+      <view class="section-heading">
+        <text class="panel-title">采集记录</text>
+        <text class="muted">{{phoneCount}} 台 / {{imeiCount}} 个 IMEI</text>
+      </view>
+      <view class="record-tools">
+        <button class="primary" bindtap="exportCsv" loading="{{exporting}}" disabled="{{!phoneCount || exporting || wechatScanBusy}}">{{exportNotice ? '确认导出 CSV' : '导出 CSV'}}</button>
+        <button wx:if="{{!completed}}" class="secondary" bindtap="undoLast" disabled="{{(!phoneCount && !book.pending.length) || wechatScanBusy || exporting}}">撤销最后一个</button>
+      </view>
+      <view wx:if="{{exportNotice}}" class="status">
+        <text selectable>{{exportNotice}}</text>
+        <view class="section-heading">
+          <button class="text-button" bindtap="copyExportCsv" disabled="{{exporting}}">复制 CSV 内容</button>
+          <button class="text-button" bindtap="dismissExportNotice" disabled="{{exporting}}">关闭</button>
+        </view>
+      </view>
+      <text class="helper">仅保存在本机当前账号，不同步库存。导出后请将 IMEI 列按文本导入，以保留前导零。</text>
+      <view wx:if="{{!phoneCount}}" class="empty"><view>暂无已完成记录</view><view>扫描并录满一台后，会显示在这里</view></view>
+      <view wx:for="{{history}}" wx:key="id" class="history-item">
+        <view class="section-heading">
+          <text class="history-title">#{{item.number}} · {{item.model || '未填写型号'}}</text>
+          <button wx:if="{{!completed}}" class="text-button" data-id="{{item.id}}" bindtap="editPhoneModel" disabled="{{wechatScanBusy || exporting}}">改型号</button>
+        </view>
+        <view class="muted history-time">{{item.displayTime}}</view>
+        <view wx:for="{{item.imeis}}" wx:for-item="number" wx:for-index="imeiIndex" wx:key="*this" class="history-number">
+          <text class="muted">IMEI{{imeiIndex + 1}}</text><text class="imei-number" selectable>{{number}}</text>
+        </view>
+      </view>
+      <button wx:if="{{phoneCount > history.length}}" class="secondary" bindtap="showMoreHistory">加载更多记录</button>
+      <button wx:if="{{!completed && (phoneCount || book.pending.length)}}" class="text-button danger clear-book" bindtap="clearBook" disabled="{{wechatScanBusy || exporting}}">清空本任务采集记录</button>
+    </view>
+  </block>
+</view>

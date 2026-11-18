@@ -74,6 +74,10 @@ Page({
     });
   },
 
+  goToImei() {
+    wx.navigateTo({ url: '/pages/imei/tasks' });
+  },
+
   goToOutbound() {
     wx.navigateTo({
       url: '/pages/outbound/outbound'

@@ -1,5 +1,12 @@
 <view class="container">
   <view class="nav-grid">
+    <view class="nav-card imei-card" bindtap="goToImei">
+      <view class="nav-icon-wrapper imei-icon">
+        <text class="nav-icon">▥</text>
+      </view>
+      <text class="nav-title">IMEI扫码</text>
+      <text class="nav-desc">我的扫码任务</text>
+    </view>
     <view class="nav-card pending-order-card" bindtap="goToPendingOutbound">
       <view class="nav-icon-wrapper pending-order-icon">
         <text class="nav-icon">⏳</text>
